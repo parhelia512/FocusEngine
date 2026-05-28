@@ -56,6 +56,8 @@ namespace Xenko.VirtualReality
 
         // Misc
         private bool _unmanagedResourcesFreed;
+        private Fovf[] orig_fovf = new Fovf[2];
+        private Posef[] orig_posef = new Posef[2];
 
         /// <summary>
         /// A simple function which throws an exception if the given OpenXR result indicates an error has been raised.
@@ -285,8 +287,8 @@ namespace Xenko.VirtualReality
                 for (var eye = 0; eye < 2; eye++)
                 {
                     ref var layerView = ref projection_views[eye];
-                    layerView.Fov = views[eye].Fov;
-                    layerView.Pose = views[eye].Pose;
+                    layerView.Fov = orig_fovf[eye];
+                    layerView.Pose = orig_posef[eye];
                 }
 
                 frameEndInfo.LayerCount = 1;
@@ -344,6 +346,12 @@ namespace Xenko.VirtualReality
 
             uint view_count;
             Xr.LocateView(globalSession, &view_locate_info, &view_state, 2, &view_count, views);
+
+            // capture raw inputs for later endframe
+            orig_fovf[0] = views[0].Fov;
+            orig_fovf[1] = views[1].Fov;
+            orig_posef[0] = views[0].Pose;
+            orig_posef[1] = views[1].Pose;
 
             // since we got eye positions, our head is between our eyes
             rawHeadPos.X = (views[0].Pose.Position.X + views[1].Pose.Position.X) * 0.5f;
